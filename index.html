@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>⚡ NEXUS LOCK | Advanced Hacking UI Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
+            font-family: 'Fira Code', 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* ========== LOCK SCREEN (PASSWORD WALL) ========== */
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.96);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .lock-card {
+            background: rgba(10, 20, 30, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 42px;
+            padding: 40px 30px;
+            width: 90%;
+            max-width: 460px;
+            box-shadow: 0 25px 45px rgba(0, 255, 255, 0.2), 0 0 0 1px rgba(0, 255, 255, 0.1) inset;
+            text-align: center;
+            animation: flickerGlow 2s infinite alternate;
+        }
+
+        @keyframes flickerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 255, 255, 0.15), 0 0 0 1px rgba(0, 255, 255, 0.2) inset; }
+            100% { box-shadow: 0 25px 55px rgba(0, 255, 255, 0.5), 0 0 0 2px cyan inset; }
+        }
+
+        .lock-icon {
+            font-size: 70px;
+            filter: drop-shadow(0 0 8px cyan);
+            margin-bottom: 20px;
+        }
+
+        .lock-card h2 {
+            color: #0ff;
+            letter-spacing: 3px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 1.8rem;
+            text-shadow: 0 0 6px cyan;
+        }
+
+        .lock-card p {
+            color: #8aaec0;
+            margin: 15px 0 25px;
+            font-size: 0.9rem;
+        }
+
+        .pass-input {
+            width: 100%;
+            background: #000000aa;
+            border: 1.5px solid #0ff;
+            padding: 14px 20px;
+            border-radius: 60px;
+            color: #0ff;
+            font-family: monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .pass-input:focus {
+            border-color: #f0f;
+            box-shadow: 0 0 12px #f0f;
+        }
+
+        .unlock-btn {
+            margin-top: 28px;
+            background: linear-gradient(90deg, #0ff, #0a6c8c);
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 44px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #010101;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .unlock-btn:hover {
+            transform: scale(0.98);
+            background: #0ff;
+            box-shadow: 0 0 20px cyan;
+        }
+
+        .error-msg {
+            margin-top: 18px;
+            color: #ff3366;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-shadow: 0 0 4px red;
+        }
+
+        /* ========== MAIN DASHBOARD (ADVANCED UI) ========== */
+        .dashboard {
+            display: none;
+            width: 100%;
+            max-width: 1400px;
+            background: rgba(8, 12, 24, 0.7);
+            backdrop-filter: blur(4px);
+            border-radius: 38px;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,255,255,0.2) inset;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* header */
+        .dash-header {
+            background: rgba(0, 20, 30, 0.9);
+            padding: 18px 28px;
+            border-bottom: 2px solid cyan;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo h1 {
+            color: #0ff;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+        }
+
+        .badge {
+            background: #0ff22a30;
+            border: 1px solid #0f0;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        /* grid */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 28px;
+            padding: 32px;
+        }
+
+        .glass-card {
+            background: rgba(12, 22, 35, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            padding: 22px 24px;
+            transition: 0.25s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        }
+
+        .glass-card:hover {
+            border-color: cyan;
+            box-shadow: 0 8px 22px rgba(0,255,255,0.2);
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #0ff;
+            border-left: 5px solid #0ff;
+            padding-left: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        textarea, input, button {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .msg-box {
+            background: #010a12;
+            border-radius: 18px;
+            padding: 12px;
+            color: #b0e0ff;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .admin-msg {
+            background: #0a1f2a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 18px;
+            border-left: 4px solid cyan;
+        }
+
+        textarea, .input-field {
+            width: 100%;
+            background: #031016;
+            border: 1px solid #2f6f8f;
+            border-radius: 20px;
+            padding: 12px;
+            color: #c0ffff;
+            resize: vertical;
+            margin: 8px 0;
+        }
+
+        button {
+            background: linear-gradient(95deg, #0b5e7c, #0a4b64);
+            border: none;
+            padding: 10px 22px;
+            border-radius: 44px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 6px;
+        }
+
+        button:hover {
+            background: #0ff;
+            color: black;
+            box-shadow: 0 0 10px cyan;
+        }
+
+        .youtube-area {
+            margin-top: 10px;
+        }
+
+        .video-preview {
+            margin-top: 16px;
+            background: #00000066;
+            border-radius: 22px;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        iframe {
+            width: 100%;
+            height: 200px;
+            border-radius: 20px;
+            border: none;
+        }
+
+        .condition-note {
+            background: #220c1f;
+            border-radius: 20px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #ffaa88;
+            border: 1px dashed #ff55aa;
+        }
+
+        .status-led {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #0f0;
+            box-shadow: 0 0 6px #0f0;
+            margin-right: 8px;
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.8);}
+            100% { opacity: 1; transform: scale(1.2);}
+        }
+
+        footer {
+            text-align: center;
+            padding: 18px;
+            color: #6c8d9e;
+            border-top: 1px solid #0ff33a30;
+            font-size: 0.7rem;
+        }
+        @media (max-width: 780px) {
+            .dash-grid { padding: 18px; gap: 18px; }
+            .card-title { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOCK SCREEN: PASSWORD WALL -->
+<div id="lockScreen" class="lock-overlay">
+    <div class="lock-card">
+        <div class="lock-icon">🔐⚡</div>
+        <h2>// NEXUS SECURE LOCK //</h2>
+        <p>🔒 Enter master password to access advanced dashboard</p>
+        <input type="password" id="passwordInput" class="pass-input" placeholder="✱✱✱✱✱✱✱" autocomplete="off">
+        <button id="unlockBtn" class="unlock-btn">⟁ UNLOCK TERMINAL ⟁</button>
+        <div id="lockError" class="error-msg"></div>
+        <div style="margin-top: 20px; font-size: 0.7rem; color: #5f9ea0;">[⚙️ HINT: admin123]</div>
+    </div>
+</div>
+
+<!-- MAIN DASHBOARD (after correct password) -->
+<div id="dashboard" class="dashboard">
+    <div class="dash-header">
+        <div class="logo">
+            <h1>🕶️ DARK•BOARD <span style="font-size: 0.8rem;">v.2.0.7</span></h1>
+        </div>
+        <div class="badge">
+            <span class="status-led"></span> SECURE NEXUS
+        </div>
+    </div>
+
+    <div class="dash-grid">
+        <!-- CARD 1: MESSAGE READ KERNEL (Read Messages) -->
+        <div class="glass-card">
+            <div class="card-title">
+                📡 MESSAGE READ KERNEL
+            </div>
+            <div style="font-size: 0.8rem; color: #7fcdff;">[Encrypted Inbox]</div>
+            <div id="messageInbox" class="msg-box">
+                <!-- dynamic messages will appear -->
+                <div style="color: #888;">🔍 Loading intelligence feed...</div>
+            </div>
+            <button id="refreshMessagesBtn">⟳ REFRESH / READ MSGS</button>
+            <div class="condition-note">
+                ⚠️ NOTE: All messages are securely logged. Only admins can see raw metadata.
+            </div>
+        </div>
+
+        <!-- CARD 2: ADMIN MESSAGE SENDER (Send to admin) -->
+        <div class="glass-card">
+            <div class="card-title">
+                ✉️ ADMIN MESSENGER
+            </div>
+            <textarea id="adminMsgInput" rows="3" placeholder="Write message for ADMIN / core server..."></textarea>
+            <button id="sendAdminMsgBtn">📨 SEND TO ADMIN</button>
+            <div id="adminFeedback" style="color: cyan; margin-top: 10px; font-size: 0.8rem;"></div>
+            <div class="condition-note">
+                🧨 All messages are relayed via quantum channel. Admin response simulated.
+            </div>
+        </div>
+
+        <!-- CARD 3: YOUTUBE EMBED + CODE PASTE (with ADVANCED CONDITIONS) -->
+        <div class="glass-card">
+            <div class="card-title">
+                🎬 YT•EMBED ENGINE
+            </div>
+            <div style="margin-bottom: 8px; color: #0ff;">🔗 Paste YouTube URL or VIDEO ID:</div>
+            <input type="text" id="youtubeUrlInput" class="input-field" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ  OR  dQw4w9WgXcQ">
+            <button id="loadVideoBtn">▶ EMBED & PLAY</button>
+            <div class="video-preview" id="videoContainer">
+                <div style="color: #6a9fb5;">🎞️ [ no video loaded ]</div>
+            </div>
+            <div class="condition-note" id="ytConditionMessage">
+                🔍 CONDITIONS: Only valid YT links (youtube.com/watch?v=... or youtu.be/... or just ID).<br>
+                ⚠️ Restricted words in title? will be filtered. requires "safe domain" check.
+            </div>
+        </div>
+    </div>
+
+    <!-- extra advanced row: integrated logs -->
+    <div style="padding: 0 32px 20px 32px;">
+        <div class="glass-card" style="background: #03101680;">
+            <div class="card-title" style="font-size: 1.2rem;">📜 EVENT LOG [KAFIR ASARA CONDITION MONITOR]</div>
+            <div id="eventLog" style="height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; color: #9acd32;">
+                > System ready. Awaiting commands...
+            </div>
+        </div>
+    </div>
+    <footer>
+        ⚡ NEXUS LOCK · Advanced UI · Military-grade encryption simulation · All actions monitored ⚡
+    </footer>
+</div>
+
+<script>
+    // ========== PASSWORD PROTECTION ==========
+    const LOCK_PASSWORD = "DEEPAK@124";   // as per hint, changeable but stays simple for demo
+
+    // DOM elements
+    const lockScreen = document.getElementById('lockScreen');
+    const dashboard = document.getElementById('dashboard');
+    const passwordInput = document.getElementById('passwordInput');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const lockError = document.getElementById('lockError');
+
+    // MESSAGES STORAGE (simulated DB)
+    let messagesList = [
+        { id: 1, from: "SystemCore", content: "🔔 Welcome, operator. Dashboard active.", timestamp: new Date().toLocaleTimeString() },
+        { id: 2, from: "AI-Sentinel", content: "✅ All modules green. Ready for admin commands.", timestamp: new Date().toLocaleTimeString() },
+        { id: 3, from: "HackSim", content: "⚠️ KAFIR ASARA CONDITION: integrity check passed.", timestamp: new Date().toLocaleTimeString() }
+    ];
+
+    // Function to render messages (read kernel)
+    function renderMessages() {
+        const inboxDiv = document.getElementById('messageInbox');
+        if (!inboxDiv) return;
+        if (messagesList.length === 0) {
+            inboxDiv.innerHTML = '<div style="color:#aaa;">📭 No messages received.</div>';
+            return;
+        }
+        let html = '';
+        messagesList.slice().reverse().forEach(msg => {
+            html += `<div class="admin-msg">
+                        <strong style="color:#0ff;">[${msg.from}]</strong> 
+                        <span style="color:#b9f6ca;">${msg.content}</span><br>
+                        <small style="color:#5f9ea0;">🕒 ${msg.timestamp}</small>
+                     </div>`;
+        });
+        inboxDiv.innerHTML = html;
+        addLogEvent("Message kernel refreshed: read " + messagesList.length + " messages.");
+    }
+
+    // add event log (kafir asara conditions & every action)
+    function addLogEvent(message, type = "info") {
+        const logDiv = document.getElementById('eventLog');
+        if (!logDiv) return;
+        const time = new Date().toLocaleTimeString();
+        const prefix = type === "error" ? "❌" : "🔹";
+        const coloredMsg = `<div>${prefix} [${time}] ${message}</div>`;
+        logDiv.innerHTML += coloredMsg;
+        logDiv.scrollTop = logDiv.scrollHeight;
+        // keep last 30 logs
+        if (logDiv.children.length > 35) {
+            while(logDiv.children.length > 30) logDiv.removeChild(logDiv.firstChild);
+        }
+    }
+
+    // send message to admin (adds to message list & shows feedback)
+    function sendAdminMessage() {
+        const adminMsgInput = document.getElementById('adminMsgInput');
+        const adminFeedback = document.getElementById('adminFeedback');
+        let msgContent = adminMsgInput.value.trim();
+        if (msgContent === "") {
+            adminFeedback.innerHTML = "⚠️ Cannot send empty message!";
+            addLogEvent("Admin message failed: empty content.", "error");
+            setTimeout(()=>{ adminFeedback.innerHTML = "";}, 2000);
+            return;
+        }
+        // Advanced condition: check if message contains forbidden words? but we just allow,
+        // but add "KAFIR ASARA" condition: if message length > 200 chars restrict
+        if (msgContent.length > 200) {
+            adminFeedback.innerHTML = "🚫 KAFIR ASARA CONDITION TRIGGERED: message exceeds 200 chars!";
+            addLogEvent("Admin msg blocked: length exceeds limit (KAFIR ASARA violation).", "error");
+            setTimeout(()=>{ adminFeedback.innerHTML = "";}, 3000);
+            return;
+        }
+        // add to messages list (like an admin receives)
+        const newMsg = {
+            id: Date.now(),
+            from: "Operator",
+            content: `📨 TO ADMIN: ${msgContent}`,
+            timestamp: new Date().toLocaleTimeString()
+        };
+        messagesList.push(newMsg);
+        renderMessages();
+        adminFeedback.innerHTML = "✅ Message delivered to Admin Core!";
+        addLogEvent(`Admin message sent: "${msgContent.substring(0, 50)}${msgContent.length>50?'...':''}"`);
+        adminMsgInput.value = "";
+        setTimeout(()=>{ adminFeedback.innerHTML = ""; }, 2500);
+    }
+
+    // refresh messages button
+    function refreshMessages() {
+        renderMessages();
+        addLogEvent("Manual refresh of read kernel executed.");
+    }
+
+    // ========== YOUTUBE EMBED with ADVANCED CONDITIONS + KAFIR ASARA RESTRICTIONS ==========
+    function loadYouTubeVideo() {
+        const urlInput = document.getElementById('youtubeUrlInput');
+        let rawInput = urlInput.value.trim();
+        const videoContainer = document.getElementById('videoContainer');
+        const conditionMsgDiv = document.getElementById('ytConditionMessage');
+        if (!rawInput) {
+            videoContainer.innerHTML = '<div style="color:#ff7799;">⚠️ Paste a YouTube URL or ID first!</div>';
+            addLogEvent("YT embed failed: empty input.");
+            return;
+        }
+
+        let videoId = null;
+        // Advanced extraction logic: supports youtu.be, youtube.com/watch?v=, or just id
+        const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+            /^([a-zA-Z0-9_-]{11})$/
+        ];
+        for (let pattern of patterns) {
+            let match = rawInput.match(pattern);
+            if (match) {
+                videoId = match[1];
+                break;
+            }
+        }
+
+        // KAFIR ASARA CONDITION: Additional restrictions (blacklisted keywords in url/embed)
+        const lowerInput = rawInput.toLowerCase();
+        const restrictedKeywords = ["hacktool", "malware", "cracking", "exploit_kit"];
+        let isMalicious = restrictedKeywords.some(kw => lowerInput.includes(kw));
+        if (isMalicious) {
+            videoContainer.innerHTML = `<div style="color:#ff4444; background:#220000; padding:20px; border-radius:20px;">⛔ KAFIR ASARA CONDITION TRIGGERED! Restricted content blocked. ⛔</div>`;
+            addLogEvent(`YT embed blocked due to restricted keyword in input: ${rawInput}`, "error");
+            conditionMsgDiv.innerHTML = `⚠️ CONDITION FAIL: malicious keyword detected. Video not allowed.`;
+            return;
+        }
+
+        if (!videoId) {
+            videoContainer.innerHTML = `<div style="color:#ff8888;">❌ Invalid YouTube link/ID. Use standard format.</div>`;
+            addLogEvent(`YT embed failed: invalid identifier (${rawInput})`, "error");
+            conditionMsgDiv.innerHTML = `🔍 CONDITIONS: Provide correct YT ID or full URL. KAFIR rule: only trusted domains.`;
+            return;
+        }
+
+        // Additional advanced condition: restrict certain video IDs? e.g., block id length must be 11
+        if (videoId.length !== 11) {
+            videoContainer.innerHTML = `<div style="color:orange;">⚠️ Video ID length invalid (must be 11 chars). KAFIR validation failed.</div>`;
+            addLogEvent(`Invalid youtube ID length: ${videoId}`, "error");
+            return;
+        }
+
+        // Build embed with privacy-enhanced mode
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&modestbranding=1&rel=0`;
+        videoContainer.innerHTML = `<iframe src="${embedUrl}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        addLogEvent(`🎬 Video loaded successfully! YouTube ID: ${videoId} | conditions passed.`);
+        conditionMsgDiv.innerHTML = `✅ KAFIR ASARA condition satisfied! Video embed active. All security protocols OK.`;
+        // log also to event log
+    }
+
+    // additional advanced dashboard initializer
+    function initDashboardEvents() {
+        document.getElementById('refreshMessagesBtn')?.addEventListener('click', refreshMessages);
+        document.getElementById('sendAdminMsgBtn')?.addEventListener('click', sendAdminMessage);
+        document.getElementById('loadVideoBtn')?.addEventListener('click', loadYouTubeVideo);
+        // update message board initially
+        renderMessages();
+        addLogEvent("Dashboard UI fully armed — Message kernel, Admin messenger, YT Engine ready.");
+        addLogEvent("KAFIR ASARA condition engine watching for violations.");
+    }
+
+    // unlock function: password validation + advanced transition
+    function attemptUnlock() {
+        const enteredPass = passwordInput.value;
+        if (enteredPass === LOCK_PASSWORD) {
+            // success: hide lock, show dashboard with advanced ui
+            lockScreen.style.opacity = "0";
+            setTimeout(() => {
+                lockScreen.style.display = "none";
+                dashboard.style.display = "block";
+                // additional security removal
+                document.body.style.overflow = "auto";
+                initDashboardEvents();
+                addLogEvent("ACCESS GRANTED: Master password accepted. Nexus Dashboard initiated.");
+            }, 400);
+        } else {
+            lockError.innerHTML = "❌ ACCESS DENIED | INVALID CREDENTIALS ❌";
+            addLogEvent(`Failed unlock attempt with password: ${enteredPass}`, "error");
+            // shake effect
+            const lockCard = document.querySelector('.lock-card');
+            lockCard.style.transform = "translateX(8px)";
+            setTimeout(()=> lockCard.style.transform = "", 150);
+            setTimeout(()=> lockCard.style.transform = "translateX(-6px)", 60);
+            setTimeout(()=> lockCard.style.transform = "", 120);
+            setTimeout(() => { if(lockError) lockError.innerHTML = ""; }, 2200);
+        }
+    }
+
+    // Enter key support
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') attemptUnlock();
+    });
+    unlockBtn.addEventListener('click', attemptUnlock);
+
+    // additional: prevent dashboard display before unlock
+    dashboard.style.display = "none";
+
+    // Simulate some fake logs but initial nothing
+    console.log("Secure Lock UI Ready - Kafir Asara conditions embedded");
+</script>
+</body>
+</html>
